@@ -77,11 +77,8 @@ def main():
 
     while not done:
 
-        male_names = set()
-        female_names = set()
-
-        male_char_probs = dict()
-        female_char_probs = dict()
+        names = set()
+        char_probs = dict()
 
         gender = input("Select a gender M or F: ").lower()
 
@@ -98,16 +95,14 @@ def main():
             print("Invalid input - you must enter an integer value\n")
             continue
 
-        char_probs = male_char_probs if gender == 'm' else female_char_probs
-        name_set = male_names if gender == 'm' else female_names
         filename = 'namesBoys.txt'if gender == 'm' else 'namesGirls.txt'
 
-        process_file(filename, name_set, char_probs, order)
+        process_file(filename, names, char_probs, order)
 
-        convert_count_to_prob(male_char_probs)
-        convert_count_to_prob(female_char_probs)
+        convert_count_to_prob(char_probs)
 
-        names = generate_names(char_probs, name_set, order, min_length, max_length, quantity)
+        names = generate_names(char_probs, names, order, min_length, max_length, quantity)
+
         print("\nNEW NAMES:")
         for name in names:
             print(name)
