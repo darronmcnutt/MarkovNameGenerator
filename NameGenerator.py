@@ -1,7 +1,9 @@
 import random
 
 
-def process_file(filename, names, char_probs, order):
+def process_file(filename, names, char_counts, order):
+    """Reads a text file containing a list of first names,
+    adds each name to a set, and prepares the name for further processing"""
     infile = open(filename, 'r')
     underscores = '_' * order
 
@@ -12,63 +14,71 @@ def process_file(filename, names, char_probs, order):
 
         name = underscores + name + underscores
 
-        process_name(name, char_probs, order)
+        process_name(name, char_counts, order)
 
     infile.close()
 
 
-def process_name(name, char_probs, order):
+def process_name(name, char_counts, order):
+    """Builds a 2D dictionary with a sequence of one or more characters as the outer key,
+    the next character that follows this sequence as the inner key, and
+    the number of times this character follows the character sequence as the value"""
     for i in range(0, len(name) - 2*order + 1):
-        sequence = name[i:i+order]
+        char_sequence = name[i:i+order]
         next_char = name[i + order]
 
-        if sequence not in char_probs:
-            char_probs[sequence] = dict()
+        if char_sequence not in char_counts:
+            char_counts[char_sequence] = dict()
 
-        if next_char not in char_probs[sequence]:
-            char_probs[sequence][next_char] = 1
+        if next_char not in char_counts[char_sequence]:
+            char_counts[char_sequence][next_char] = 1
         else:
-            char_probs[sequence][next_char] += 1
+            char_counts[char_sequence][next_char] += 1
 
 
-def convert_count_to_prob(char_probs):
-    for sequence in char_probs:
-        total = sum(char_probs[sequence].values())
-        for next_char in char_probs[sequence]:
-            char_probs[sequence][next_char] /= total
+def convert_count_to_prob(char_counts):
+    """Reads a 2D dictionary containing the counts of characters that follow a particular sequence
+     and converts counts to percentages"""
+    for char_sequence in char_counts:
+        total = sum(char_counts[char_sequence].values())
+        for next_char in char_counts[char_sequence]:
+            char_counts[char_sequence][next_char] /= total
 
 
 def generate_name(char_probs, order):
-    sequence = '_' * order
+    """Generates a single new name given a 2D dictionary of probabilities and Markov order"""
+    char_sequence = '_' * order
     name = ''
     done = False
 
     while not done:
         rand = random.random()
-        for next_char in char_probs[sequence]:
-            if rand < char_probs[sequence][next_char]:
+        for next_char in char_probs[char_sequence]:
+            if rand < char_probs[char_sequence][next_char]:
                 if next_char == '_':
                     done = True
                 else:
                     name += next_char
-                    sequence = sequence[1:] + next_char
+                    char_sequence = char_sequence[1:] + next_char
                 break
             else:
-                rand -= char_probs[sequence][next_char]
+                rand -= char_probs[char_sequence][next_char]
 
     return name
 
 
-def generate_names(char_probs, name_set, order, min_length, max_length, quantity):
-    names = []
+def generate_names(char_probs, names, order, min_length, max_length, quantity):
+    """Generates a list of names given a 2D dictionary of probabilities, Markov order, minimum name length,
+     maximum name length, and quantity of names to generate"""
+    new_names = []
     name = ''
 
-    while len(names) < quantity:
-        while (len(name) < min_length) or (len(name) > max_length) or (name in name_set):
+    while len(new_names) < quantity:
+        while (len(name) < min_length) or (len(name) > max_length) or (name in names):
             name = generate_name(char_probs, order)
-        names.append(name.capitalize())
+        new_names.append(name.capitalize())
         name = ''
-    return names
+    return new_names
 
 
 def main():
